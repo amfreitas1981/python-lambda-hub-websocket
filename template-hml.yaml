@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  python-lambda-hub-websocket
+Transform:
+  - AWS::Serverless-2016-10-31
+Resources:
+  ConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: python-lambda-hub-websocket-on-connect
+      CodeUri: connect/
+      Handler: on_connect_lambda.lambda_handler
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Environment:
+        Variables:
+          TABLE_NAME: NOME_DA_TABELA
+      Tags:
+        Project-name:
+  DisconnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: python-lambda-hub-websocket-on-disconnect
+      CodeUri: disconnect/
+      Handler: on_disconnect_lambda.lambda_handler
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Environment:
+        Variables:
+          TABLE_NAME: NOME_DA_TABELA
+      Tags:
+        Project-name:
+  MessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: python-lambda-hub-websocket-on-send-message
+      CodeUri: message/
+      Handler: on_send_message_lambda.lambda_handler
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Environment:
+        Variables:
+          TABLE_NAME: NOME_DA_TABELA
+          WS_ENDPOINT: localhost # A alterar
+      Tags:
+        Project-name:
