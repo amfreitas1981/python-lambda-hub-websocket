@@ -1,20 +1,51 @@
 # python-lambda-hub-websocket
 
+![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange?logo=amazon-aws&style=for-the-badge)
+![WebSocket](https://img.shields.io/badge/API%20Gateway-WebSocket-blue?style=for-the-badge)
+![DynamoDB](https://img.shields.io/badge/DynamoDB-NoSQL-blueviolet?logo=amazon-aws&style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Concluído-green?style=for-the-badge)
+
 Este projeto implementa uma arquitetura de comunicação em tempo real utilizando WebSocket via API Gateway, AWS Lambda e DynamoDB. Ele permite que sessões conectadas via navegador troquem mensagens em tempo real por meio de um canal centralizado (HUB).
+
+## Sumário
+
+* [Arquitetura Solução](#arquitetura-solução)
+* [Tecnologias Utilizadas](#tecnologias-utilizadas)
+* [Estrutura do Projeto](#estrutura-do-projeto)
+* [Como fazer o Deploy](#como-fazer-o-deploy)
+* [Rotas WebSocket](#rotas-websocket)
+* [Testes Locais](#testes-locais)
+* [Especificação Funcional](#especificação-funcional)
+  * [Visão Geral](#visão-geral)
+* [Funcionalidades](#funcionalidades)
+  * [1. Conexão WebSocket (`$connect`)](#1-conexão-websocket-connect)
+  * [2. Desconexão WebSocket (`$disconnect`)](#2-desconexão-websocket-disconnect)
+  * [3. Envio de Mensagem (`sendMessage`)](#3-envio-de-mensagem-sendmessage)
+* [Estrutura da Tabela DynamoDB](#estrutura-da-tabela-dynamodb)
+* [Exceções e Logs](#exceções-e-logs)
+* [Fluxo Arquitetural](#fluxo-arquitetural)
+* [Segurança](#segurança)
+* [Monitoramento](#monitoramento)
+
+---
 
 ## Arquitetura Solução
 
 Abaixo está o fluxo completo do serviço Websocket com API Gateway e AWS Lambda:
 ![Arquitetura da Solução](docs/img/solucao_lambda_hub_aws_python_atualizada.drawio.png)
 
-## 🛠️ Tecnologias Utilizadas
+---
 
-- **AWS Lambda (Python 3.12)**
+## Tecnologias Utilizadas
+
+- **AWS Lambda (Python 3.10)**
 - **Amazon API Gateway (WebSocket)**
 - **Amazon DynamoDB**
 - **AWS SAM (Serverless Application Model)**
 
-## 📁 Estrutura do Projeto
+---
+
+## Estrutura do Projeto
 
     python-lambda-hub-websocket/
     │
@@ -30,27 +61,28 @@ Abaixo está o fluxo completo do serviço Websocket com API Gateway e AWS Lambda
     ├── template.yaml # Definição AWS SAM (CloudFormation)
     └── events/ # Eventos de teste para invocação local
 
+---
 
-## 🚀 Como fazer o Deploy
-
+## Como fazer o Deploy
 1. Instalar o [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html).
-
 2. Configurar suas credenciais AWS:
 ```bash
 aws configure
 ```
-
 3. Build e deploy com SAM:
 ```bash
 sam build
 sam deploy --guided
 ```
 Durante o deploy, você informará:
-
 - Nome da stack
 - Região
 - Nome da tabela DynamoDB (TABLE_NAME)
 - Endpoint do WebSocket (opcional)
+
+---
+
+## Rotas WebSocket
 
 | Rota WebSocket | Função Lambda      | Ação                             |
 | -------------- | ------------------ | -------------------------------- |
@@ -58,40 +90,39 @@ Durante o deploy, você informará:
 | `$disconnect`  | DisconnectFunction | Remove conexão da tabela         |
 | `sendMessage`  | MessageFunction    | Envia mensagens para as conexões |
 
+---
 
-## 📦 Testes Locais
+## Testes Locais
 Utilizar os eventos de teste disponíveis em events/ com o comando:
 ```bash
 sam local invoke ConnectFunction --event events/connect.json
 ```
 
-## # Especificação Funcional - Serviço python-lambda-hub-websocket
+---
 
-## Visão Geral
-
+## Especificação Funcional
+### Visão Geral
 O serviço permite a troca de mensagens em tempo real entre usuários conectados a um HUB WebSocket, utilizando AWS Lambda e DynamoDB para persistência e comunicação via API Gateway.
 
 ## Funcionalidades
-
 ### 1. Conexão WebSocket (`$connect`)
-
 - **Trigger**: Evento de conexão WebSocket.
 - **Ação**: A Lambda `ConnectFunction` armazena `connection_id` e `session_id` no DynamoDB.
 - **Objetivo**: Registrar usuários para comunicação futura.
 
 ### 2. Desconexão WebSocket (`$disconnect`)
-
 - **Trigger**: Encerramento de conexão.
 - **Ação**: `DisconnectFunction` remove o `connection_id` da tabela DynamoDB.
 - **Objetivo**: Limpar conexões inativas.
 
 ### 3. Envio de Mensagem (`sendMessage`)
-
 - **Trigger**: Mensagem do cliente contendo lista de sessões.
 - **Ação**:
   - `MessageFunction` busca todos os `connection_id` relacionados aos `session_id` fornecidos.
   - Usa o `apigatewaymanagementapi` para enviar mensagens em tempo real.
 - **Objetivo**: Disseminar atualizações entre clientes conectados.
+
+---
 
 ## Estrutura da Tabela DynamoDB
 
@@ -100,25 +131,29 @@ O serviço permite a troca de mensagens em tempo real entre usuários conectados
 | session_id    | S    |
 | connection_id | S    |
 
-## Exceções e Logs
+---
 
+## Exceções e Logs
 - Todos os handlers capturam erros com `try/except`.
 - Logs de eventos e falhas são enviados para o CloudWatch com nível `INFO` e `ERROR`.
 
-## Fluxo Arquitetural
+---
 
+## Fluxo Arquitetural
 1. Usuário abre navegador com WebSocket.
 2. Ao conectar, a `ConnectFunction` registra a sessão.
 3. Ao enviar dados para uma sessão, `MessageFunction` envia para todos os `connection_id` daquela `session_id`.
 4. Ao desconectar, `DisconnectFunction` remove a conexão.
 
-## Segurança
+---
 
+## Segurança
 - A autenticação não está ativada no WebSocket (por padrão).
 - Pode-se adicionar autenticação via JWT no futuro.
 
-## Monitoramento
+---
 
+## Monitoramento
 - CloudWatch Logs para cada função.
 - Métricas de conexão e envio disponíveis via API Gateway e Lambda Metrics.
 
