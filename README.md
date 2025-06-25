@@ -7,6 +7,8 @@
 
 Este projeto implementa uma arquitetura de comunicação em tempo real utilizando WebSocket via API Gateway, AWS Lambda e DynamoDB. Ele permite que sessões conectadas via navegador troquem mensagens em tempo real por meio de um canal centralizado (HUB).
 
+---
+
 ## Sumário
 
 * [Arquitetura Solução](#arquitetura-solução)
